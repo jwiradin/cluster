@@ -198,22 +198,23 @@ public class Cluster {
         int i = line.toLowerCase().indexOf("removing member");
 
         if (i > 0){
-            return line.substring(i);
+            return "removing member";
+//            return line.substring(i);
         }
 
         i = line.toLowerCase().indexOf("initialized new");
         if (i > 0){
-            return line.substring(i);
+            return "initialized new";
         }
 
         i = line.toLowerCase().indexOf("cluster.clusterservice");
         if (i > 0){
-            return line.substring(i);
+            return "cluster.clusterservice";
         }
 
         i = line.toLowerCase().indexOf("connection[id=");
         if (i > 0){
-            return line.substring(i);
+            return "connection[id=";
         }
 
         return "";
