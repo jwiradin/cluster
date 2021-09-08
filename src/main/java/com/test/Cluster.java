@@ -39,7 +39,7 @@ public class Sort {
 
             System.out.println(dtFormatter.format(LocalDateTime.now()) + " Starting ----");
             Connection dbConnection = prepareDB();
-            Process(dbConnection, path);
+            processFiles(dbConnection, path);
             dbConnection.close();
             System.out.println(dtFormatter.format(LocalDateTime.now()) + " Completed ----");
 
@@ -49,7 +49,7 @@ public class Sort {
 
     }
 
-    private static void Process(Connection dbConnection, String path) {
+    private static void processFiles(Connection dbConnection, String path) {
 
         FilenameFilter init = new FilenameFilter() {
             @Override
@@ -73,7 +73,7 @@ public class Sort {
                 if (!output.exists()) {
 
                     System.out.println(dtFormatter.format(LocalDateTime.now()) + " Start processing file: " + file.getAbsolutePath());
-                    processFile(dbConnection, file);
+                    prepareData(dbConnection, file);
 
                     rs = dbConnection.prepareStatement("Select data from data order by id").executeQuery();
 
@@ -94,7 +94,7 @@ public class Sort {
         }
     }
 
-    private static void processFile(Connection dbConnection, File file){
+    private static void prepareData(Connection dbConnection, File file){
 
         StringBuilder sb = new StringBuilder();
         Pattern ex = Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}\\W[0-2][0-9]:[0-5][0-9]:[0-5][0-9],[0-9]{3}\\W)");
