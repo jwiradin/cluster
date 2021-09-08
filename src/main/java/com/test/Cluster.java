@@ -102,17 +102,6 @@ public class Cluster {
                 }
                 writer.close();
             }
-/*
-                    rs = dbConnection.prepareStatement("Select ip, state, data from data order by id").executeQuery();
-
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(output.getAbsolutePath()));
-
-                    while(rs.next()){
-                        writer.write(rs.getString("data"));
-                    }
-                    writer.close();
-
- */
         } catch (Exception ex) {
             log.error(ex);
         }
@@ -131,11 +120,6 @@ public class Cluster {
 
         Pattern exip = Pattern.compile("\\[((?:[0-9]{1,3}\\.){3}[0-9]{1,3})\\]:");
         try {
-            /*
-            PreparedStatement ps = dbConnection.prepareStatement("truncate table data");
-            ps.executeUpdate();
-            ps.close();
-            */
             PreparedStatement ps = dbConnection.prepareStatement(INSERT);
 
             Scanner sc = new Scanner(file);
