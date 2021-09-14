@@ -30,6 +30,11 @@ public class Cluster {
 
     private static String path;
     private static Logger log;
+
+//    private final static String watchword = "connection[id=,removing member,initialized new,cluster.clusterservice";
+    private final static String watchword = "ClusterHeartbeatManager,TcpIpConnectionManager,TcpIpConnectionMonitor,TcpIpConnection,ClusterService,InitConnectionTask";
+    private static String[] watchwords;
+
     public static void main(String[] args) {
         org.apache.log4j.Logger root = Logger.getRootLogger();
         root.addAppender(new ConsoleAppender(new PatternLayout("%d %p (%t) [%c] - %m%n")));
@@ -47,7 +52,7 @@ public class Cluster {
             return;
         }
         log = Logger.getLogger(Cluster.class);
-
+        watchwords = watchword.toLowerCase().split(",");
         try {
 
             log.info("Starting ----");
@@ -81,27 +86,20 @@ public class Cluster {
             File output = null;
             for (File file : files) {
 
-                output = new File(file.getAbsolutePath() + "-sorted");
-
-                if (!output.exists()) {
-                    log.info("Start processing file: " + file.getAbsolutePath());
-                    prepareData(dbConnection, file);
-
-
-                } else{
-                    log.info("File: "+ file.getAbsolutePath() + " has been previously sorted.");
-                }
+                log.info("Start processing file: " + file.getAbsolutePath());
+                prepareData(dbConnection, file);
             }
+            output = new File(files[0].getParentFile().getPath() + "/Cluster-Sorted.log");
+            if (output.exists()) output.delete();
 
-            if(output != null) {
-                rs = dbConnection.prepareStatement("Select ts, ip, data from data where state <> '' order by ts, id").executeQuery();
-                BufferedWriter writer = new BufferedWriter(new FileWriter(output.getAbsolutePath()));
-                while (rs.next()) {
-                    //writer.write(rs.getString("ts") + "#" + rs.getString("ip") + "#" + rs.getString("data"));
-                    writer.write(rs.getString("data"));
-                }
-                writer.close();
+            rs = dbConnection.prepareStatement("Select ts, ip, data from data where state <> '' order by ts, id").executeQuery();
+            BufferedWriter writer = new BufferedWriter(new FileWriter(output.getAbsolutePath()));
+            while (rs.next()) {
+                //writer.write(rs.getString("ts") + "#" + rs.getString("ip") + "#" + rs.getString("data"));
+                writer.write(rs.getString("data"));
             }
+            writer.close();
+
         } catch (Exception ex) {
             log.error(ex);
         }
@@ -142,7 +140,7 @@ public class Cluster {
                     ts = m.group(0);
                     prvKey = String.format("000000", seq);
                     sb.append(tmp + "\n");
-                    state = parseLine(tmp);
+                    state = validateLine(tmp);
 
 
                     while (sc.hasNext()) {
@@ -166,7 +164,7 @@ public class Cluster {
                             prvKey = String.format("000000", seq);
                             ts = m.group(0);
                             sb.setLength(0);
-                            state = parseLine(tmp);
+                            state = validateLine(tmp);
                         }
                         sb.append(tmp + "\n");
                     }
@@ -193,28 +191,10 @@ public class Cluster {
         }
     }
 
-    private static String parseLine(String line){
+    private static String validateLine(String line){
 
-        int i = line.toLowerCase().indexOf("removing member");
-
-        if (i > 0){
-            return "removing member";
-//            return line.substring(i);
-        }
-
-        i = line.toLowerCase().indexOf("initialized new");
-        if (i > 0){
-            return "initialized new";
-        }
-
-        i = line.toLowerCase().indexOf("cluster.clusterservice");
-        if (i > 0){
-            return "cluster.clusterservice";
-        }
-
-        i = line.toLowerCase().indexOf("connection[id=");
-        if (i > 0){
-            return "connection[id=";
+        for (String word:watchwords) {
+            if(line.toLowerCase().indexOf(word) > 0) return word;
         }
 
         return "";
